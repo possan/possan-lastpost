@@ -14,14 +14,28 @@ function possan_lastpost_render_post_by_id( $id ){
 	if( !headers_sent() )
 		header("Content-type: text/javascript");
 
-	
 	echo "// render post by id: #".$id."\n";
-	$post = get_post( $id );
-	// print_r( $post );
 
-	$link = get_permalink( $id );
+	$content = "";
+	$title = "";
+	$link = "";
+	
+	$my_query = new WP_Query();
+	$results = $my_query->query( array( 'post__in' => array( $id ), 'posts_per_page' => 1 ) );
+	if ($my_query->have_posts()) {
+		$my_query->in_the_loop = false;
+		$my_query->the_post();
+		
+		$title = get_the_title();
+	
+		$link = get_permalink();
 
-	$html = "<h1><a href=\"".$link."\">".$post->post_title."</a></h1>\n".$post->post_content;
+	        $content = get_the_content(null, 0);
+	        $content = apply_filters('the_content', $content);
+	        $content = str_replace(']]>', ']]&gt;', $content);
+	}
+	
+	$html = "<h1><a href=\"".$link."\">".$title."</a></h1>\n".$content;
 
 	echo "document.write(".json_encode($html).");";
 }
